@@ -72,3 +72,13 @@ function createList(data) {
         realJobList.push(listing);
         docf.append(listing);
     });
+    main.append(docf);
+
+    const filterBtns = document.querySelectorAll('.job-filters > .job-filter');
+
+    filterBtns.forEach(el => {
+        el.addEventListener('click', ev => {
+            addFilter(el.dataset.filter);
+        })
+    })
+}
