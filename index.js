@@ -1,84 +1,289 @@
-const filtersSelected = new Set();
-const filters = document.querySelector('.filter-cover');
-const clear = document.querySelector('.clear');
+const TAG_ACTIVE_CLASS = 'tag--active';
+const SEARCH_HIDDEN_CLASS = 'search--hidden';
+const CLOSE_TAG_CLASS = 'close-tag';
+const TAG_CLASS = 'tag';
 
-const bgImg = document.getElementById('bg-img');
+const jobsListings = [
+  {
+    "id": 1,
+    "company": "Photosnap",
+    "logo": "./images/photosnap.svg",
+    "new": true,
+    "featured": true,
+    "position": "Senior Frontend Developer",
+    "role": "Frontend",
+    "level": "Senior",
+    "postedAt": "1d ago",
+    "contract": "Full Time",
+    "location": "USA Only",
+    "languages": ["HTML", "CSS", "JavaScript"]
+  },
+  {
+    "id": 2,
+    "company": "Manage",
+    "logo": "./images/manage.svg",
+    "new": true,
+    "featured": true,
+    "position": "Fullstack Developer",
+    "role": "Fullstack",
+    "level": "Midweight",
+    "postedAt": "1d ago",
+    "contract": "Part Time",
+    "location": "Remote",
+    "languages": ["Python"],
+    "tools": ["React"]
+  },
+  {
+    "id": 3,
+    "company": "Account",
+    "logo": "./images/account.svg",
+    "new": true,
+    "featured": false,
+    "position": "Junior Frontend Developer",
+    "role": "Frontend",
+    "level": "Junior",
+    "postedAt": "2d ago",
+    "contract": "Part Time",
+    "location": "USA Only",
+    "languages": ["JavaScript"],
+    "tools": ["React", "Sass"]
+  },
+  {
+    "id": 4,
+    "company": "MyHome",
+    "logo": "./images/myhome.svg",
+    "new": false,
+    "featured": false,
+    "position": "Junior Frontend Developer",
+    "role": "Frontend",
+    "level": "Junior",
+    "postedAt": "5d ago",
+    "contract": "Contract",
+    "location": "USA Only",
+    "languages": ["CSS", "JavaScript"]
+  },
+  {
+    "id": 5,
+    "company": "Loop Studios",
+    "logo": "./images/loop-studios.svg",
+    "new": false,
+    "featured": false,
+    "position": "Software Engineer",
+    "role": "FullStack",
+    "level": "Midweight",
+    "postedAt": "1w ago",
+    "contract": "Full Time",
+    "location": "Worldwide",
+    "languages": ["JavaScript"],
+    "tools": ["Ruby", "Sass"]
+  },
+  {
+    "id": 6,
+    "company": "FaceIt",
+    "logo": "./images/faceit.svg",
+    "new": false,
+    "featured": false,
+    "position": "Junior Backend Developer",
+    "role": "Backend",
+    "level": "Junior",
+    "postedAt": "2w ago",
+    "contract": "Full Time",
+    "location": "UK Only",
+    "tools": ["RoR"]
+  },
+  {
+    "id": 7,
+    "company": "Shortly",
+    "logo": "./images/shortly.svg",
+    "new": false,
+    "featured": false,
+    "position": "Junior Developer",
+    "role": "Frontend",
+    "level": "Junior",
+    "postedAt": "2w ago",
+    "contract": "Full Time",
+    "location": "Worldwide",
+    "languages": ["HTML", "JavaScript"],
+    "tools": ["Sass"]
+  },
+  {
+    "id": 8,
+    "company": "Insure",
+    "logo": "./images/insure.svg",
+    "new": false,
+    "featured": false,
+    "position": "Junior Frontend Developer",
+    "role": "Frontend",
+    "level": "Junior",
+    "postedAt": "2w ago",
+    "contract": "Full Time",
+    "location": "USA Only",
+    "languages": ["JavaScript"],
+    "tools": ["Vue, Sass"]
+  },
+  {
+    "id": 9,
+    "company": "Eyecam Co.",
+    "logo": "./images/eyecam-co.svg",
+    "new": false,
+    "featured": false,
+    "position": "Full Stack Engineer",
+    "role": "Fullstack",
+    "level": "Midweight",
+    "postedAt": "3w ago",
+    "contract": "Full Time",
+    "location": "Worldwide",
+    "languages": ["JavaScript", "Python"],
+    "tools": ["Django"]
+  },
+  {
+    "id": 10,
+    "company": "The Air Filter Company",
+    "logo": "./images/the-air-filter-company.svg",
+    "new": false,
+    "featured": false,
+    "position": "Front-end Dev",
+    "role": "Frontend",
+    "level": "Junior",
+    "postedAt": "1mo ago",
+    "contract": "Part Time",
+    "location": "Worldwide",
+    "languages": ["JavaScript"],
+    "tools": ["React", "Sass"]
+  }
+];
 
-if(window.innerWidth <= 540 ) {
-    let bg = bgImg.src.split('/') ;
-    console.log(bg , bg.length );
-    bg[bg.length-1] = 'bg-header-mobile.svg' ;
-    bgImg.src = bg.join('/');
+function getTagHTML(tag, tagClasses) {
+    return `<span class="${tagClasses}">
+                ${tag}
+            </span>`;
 }
 
-
-const filterParent = filters.parentElement;
-
-let data, main = document.querySelector('main'), realJobList = [];
-
-fetch('data.json')
-    .then(data => data.json())
-    .then(res => {
-        data = res;
-        createList(data);
-    });
-
-function createList(data) {
-
-    // filterParent.classList.add('none');
-
-    let docf = document.createDocumentFragment();
-    data.forEach(el => {
-        let listing = document.createElement('div');
-        listing.classList.add('listing');
-
-        let listFrag = document.createDocumentFragment();
-        listing.companyName = el.company
-        listing.data_filters = new Set([...el.languages, ...el.tools, el.role, el.level]);
-        listing.data_filters.forEach(l => {
-            let li = document.createElement('li');
-            li.classList.add('job-filter');
-            li.textContent = l;
-            li.setAttribute('data-filter', l);
-            listFrag.appendChild(li);
-        })
-
-        listing.innerHTML = `
-        <div class="left">
-            <div class="listing-img">
-                <img src="${el.logo}" alt="">
+function getJobListingHTML(jobData, filterTags = []) {
+    const JOB_TAGS_PLACEHOLDER = '###JOB_TAGS###';
+    let jobListingHTML = `
+        <div class="jobs__item">
+            <div class="jobs__column jobs__column--left">
+                <img src="${jobData.logo}" alt="${jobData.company}" class="jobs__img" />
+                <div class="jobs__info">
+                    <span class="jobs__company">${jobData.company}</span>
+                    <span class="jobs__title">${jobData.position}</span>
+                    
+                    <ul class="jobs__details">
+                        <li class="jobs__details-item">${jobData.postedAt}</li>
+                        <li class="jobs__details-item">${jobData.contract}</li>
+                        <li class="jobs__details-item">${jobData.location}</li>
+                    </ul>
+                </div>
             </div>
-            <div class="company-details">
-                <div class="company-nametags">
-                    <h4 class="company-name">${el.company}</h4>
-                    <div class="company-tags">
-                        <p class="company-tag-new" style="display:${ el.new ? "block" : 'none'}" >NEW</p>
-                        <p class="company-tag-ftrd" style="display:${ el.featured ? "block" : 'none'}" >FEATURED</p>
-                    </div>
-                </div>
-                <h2 class="job-role">${el.position}</h2>
-                <div class="job-min-details">
-                    <p class="job-time">${el.postedAt}</p>
-                    <p class="contOrFull">${el.contract}</p>
-                    <p class="job-location">${el.location}</p>
-                </div>
+            <div class="jobs__column jobs__column--right">
+                ${JOB_TAGS_PLACEHOLDER}
             </div>
         </div>
-        <ul class="job-filters">
-        </ul>
-        ` ;
+    `;
 
-        listing.querySelector('.job-filters').append(listFrag);
-        realJobList.push(listing);
-        docf.append(listing);
-    });
-    main.append(docf);
+    const tagsList = [
+        jobData.role,
+        jobData.level,
+        ...(jobData.languages || []),
+        ...(jobData.tools || [])
+    ];
+    const tagsListLowercase = tagsList.map(t => t && t.toLowerCase());
+    const passesFilter = !filterTags.length || filterTags.every(tag => (
+        tagsListLowercase.includes(tag && tag.toLowerCase())
+    ));
+    
+    if (!passesFilter) {
+        return '';
+    }
 
-    const filterBtns = document.querySelectorAll('.job-filters > .job-filter');
+    const tagsString = tagsList.reduce((acc, currentTag) => {
+        const activeClass = (filterTags.includes(currentTag) && TAG_ACTIVE_CLASS) || '';
 
-    filterBtns.forEach(el => {
-        el.addEventListener('click', ev => {
-            addFilter(el.dataset.filter);
-        })
-    })
+        return acc + getTagHTML(currentTag, `${TAG_CLASS} ${activeClass}`);
+    }, '');
+
+    return jobListingHTML.replace(JOB_TAGS_PLACEHOLDER, tagsString);
+};
+
+function toggleClass(el, className) {
+    if (el.classList.contains(className)) {
+        el.classList.remove(className);
+
+        return;
+    }
+    
+    el.classList.add(className);
 }
+
+function getSearchBarTags(tagValue, searchContentEl) {
+    let searchBarTags = Array.from(searchContentEl.children)
+        .map(node => node.innerHTML && node.innerHTML.trim())
+        .filter(tag => !!tag);
+
+    if (searchBarTags.includes(tagValue)) {
+        searchBarTags = searchBarTags.filter(tag => tag !== tagValue);
+    } else {
+        searchBarTags = [...searchBarTags, tagValue];
+    }
+
+    return searchBarTags;
+}
+
+function setJobsListings(filterTags) {
+    const jobsListingsHTML = jobsListings.reduce((acc, currentListing) => {
+        return acc + getJobListingHTML(currentListing, filterTags);
+    }, '');
+    
+    document.getElementById('jobs').innerHTML = jobsListingsHTML;
+}
+
+function displaySearchWrapper(display = false) {
+    const searchWrapper = document.getElementById('search');
+    
+    if (display) {
+        searchWrapper.classList.remove(SEARCH_HIDDEN_CLASS);
+
+        return;
+    }
+
+    searchWrapper.classList.add(SEARCH_HIDDEN_CLASS);
+}
+
+function setSearchbarContent(searchContentEl, tags) {
+    searchContentEl.innerHTML = tags.reduce((acc, currentTag) => {
+        return acc + getTagHTML(currentTag, CLOSE_TAG_CLASS);
+    }, '');
+}
+
+function resetState(searchContentEl) {
+    searchContentEl.innerHTML = '';
+
+    setJobsListings();
+    displaySearchWrapper(false);
+    toggleClass(targetEl, TAG_ACTIVE_CLASS);
+}
+
+window.addEventListener('click', (event) => {
+    const targetEl = event.target;
+    const targetText = targetEl.innerHTML.trim();
+    const searchContentEl = document.getElementById('search-content');
+    const searchBarTags = getSearchBarTags(targetText, searchContentEl);
+
+    if (targetEl.id === 'clear' || !searchBarTags.length) {
+        resetState(searchContentEl);
+
+        return;
+    }
+
+    if (![TAG_CLASS, CLOSE_TAG_CLASS].some(c => targetEl.classList.contains(c))) {
+        return;
+    }
+
+    setSearchbarContent(searchContentEl, searchBarTags);
+    toggleClass(targetEl, TAG_ACTIVE_CLASS);
+    displaySearchWrapper(searchBarTags.length > 0);
+    setJobsListings(searchBarTags);
+});
+
+setJobsListings();
