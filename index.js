@@ -127,3 +127,26 @@ function createData(array) {
     stats.classList.add("stats");
     }
 }
+let spanRole = document.createElement("span");
+spanRole.setAttribute(`data-role-${array[i].role}`, array[i].role);
+list.setAttribute(`data-role-${array[i].role}`, array[i].role);
+spanRole.appendChild(document.createTextNode(array[i].role));
+stats.appendChild(spanRole);
+let spanLevel = document.createElement("span");
+spanLevel.setAttribute(`data-level-${array[i].level}`, array[i].level);
+list.setAttribute(`data-level-${array[i].level}`, array[i].level);
+spanLevel.appendChild(document.createTextNode(array[i].level));
+stats.appendChild(spanLevel);
+for (let j = 0; j < array[i].languages.length; j++) {
+  let spanLanguage = document.createElement("span");
+  spanLanguage.setAttribute(
+    `data-languages-${array[i].languages[j]}`,
+    array[i].languages[j]
+  );
+  list.setAttribute(
+    `data-languages-${array[i].languages[j]}`,
+    array[i].languages[j]
+  );
+  spanLanguage.appendChild(document.createTextNode(array[i].languages[j]));
+  stats.appendChild(spanLanguage);
+}
